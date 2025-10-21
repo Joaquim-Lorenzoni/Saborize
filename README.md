@@ -1,0 +1,2 @@
+## **O que é o Saborize?**
+O Saborize é um aplicativo de **vendas de assinaturas personalizadas** que disponibilizam **cupons de desconto** em restaurantes, cafeterias, lanchonetes e comércios alimentícios. Ele possui como objetivo a venda dessas assinaturas de formas personalizada, tendo planos como: assinatura fast-food, amantes de café, assinatura para restaurantes, assinaturas para comidas japonesas, etc. Dessa forma o usuário assina um plano mensal e recebe cupons de desconto para os restaurantes disponíveis na assinatura.
