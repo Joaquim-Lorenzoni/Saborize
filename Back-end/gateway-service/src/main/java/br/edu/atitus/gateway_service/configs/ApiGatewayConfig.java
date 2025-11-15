@@ -36,6 +36,13 @@ public class ApiGatewayConfig {
 				.route(p -> p
 						.path("/greeting-service**")
 						.uri("lb://greeting-service"))
+				.route(p -> p
+					    .path("/ws/users/**")
+					    .uri("lb://auth-service")) 
+				.route(p -> p
+	                    .path("/ws/restaurants/**")
+	                    .uri("lb://product-service"))
+				
 				.build();
 	}
 }
