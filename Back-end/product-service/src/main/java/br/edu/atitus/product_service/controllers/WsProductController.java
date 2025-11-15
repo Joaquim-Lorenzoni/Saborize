@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import br.edu.atitus.product_service.dtos.ProductDTO;
 import br.edu.atitus.product_service.entities.ProductEntity;
+import br.edu.atitus.product_service.entities.RestaurantEntity;
 import br.edu.atitus.product_service.repositories.ProductRepository;
+import br.edu.atitus.product_service.repositories.RestaurantRepository;
 
 @RestController
 @RequestMapping("/ws/products")
@@ -23,11 +25,14 @@ public class WsProductController {
 
 	
 	private final ProductRepository repository;
+	
+	private final RestaurantRepository restaurantRepository;
 
-	public WsProductController(ProductRepository repository) {
-		super();
-		this.repository = repository;
-	}
+	public WsProductController(ProductRepository repository, RestaurantRepository restaurantRepository) {
+			super();
+			this.repository = repository;
+			this.restaurantRepository = restaurantRepository;
+}
 	
 	private ProductEntity convertDto2Entity(ProductDTO dto) {
 		var product = new ProductEntity();
@@ -91,6 +96,58 @@ public class WsProductController {
 		return ResponseEntity.ok("Excluído");
 		
 	}
+	
+	@PostMapping("/{planId}/restaurants/{restaurantId}")
+    public ResponseEntity<ProductEntity> associateRestaurant(
+            @PathVariable Long planId,
+            @PathVariable Long restaurantId,
+            @RequestHeader("X-User-Type") Integer userType) throws Exception {
+
+
+        if (userType != 0) 
+            throw new AuthenticationException("Usuário sem Permissão");
+        
+
+        ProductEntity plan = repository.findById(planId)
+                .orElseThrow(() -> new Exception("Plano (Produto) não encontrado"));
+        
+
+        RestaurantEntity restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new Exception("Restaurante não encontrado"));
+        
+
+
+        if (!plan.getRestaurants().contains(restaurant)) {
+             plan.getRestaurants().add(restaurant);
+             repository.save(plan);
+        }
+
+        return ResponseEntity.ok(plan);
+    }
+
+
+    @DeleteMapping("/{planId}/restaurants/{restaurantId}")
+    public ResponseEntity<ProductEntity> disassociateRestaurant(
+            @PathVariable Long planId,
+            @PathVariable Long restaurantId,
+            @RequestHeader("X-User-Type") Integer userType) throws Exception {
+
+
+        if (userType != 0) 
+            throw new AuthenticationException("Usuário sem Permissão");
+        
+
+        ProductEntity plan = repository.findById(planId)
+                .orElseThrow(() -> new Exception("Plano (Produto) não encontrado"));
+        
+
+        plan.getRestaurants().removeIf(r -> r.getId().equals(restaurantId));
+        
+
+        repository.save(plan);
+
+        return ResponseEntity.ok(plan);
+    }
 
 	
 	@ExceptionHandler(AuthenticationException.class)

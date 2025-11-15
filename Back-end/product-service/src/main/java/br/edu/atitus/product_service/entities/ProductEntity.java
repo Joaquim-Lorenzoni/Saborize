@@ -1,10 +1,16 @@
 package br.edu.atitus.product_service.entities;
 
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
@@ -16,11 +22,9 @@ public class ProductEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
+	private String name;
+	
 	private String description;
-	
-	private String brand;
-	
-	private String model;
 	
 	private double price;
 	
@@ -37,7 +41,16 @@ public class ProductEntity {
 	
 	@Transient
 	private double convertedPrice;
-
+	
+	@ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "tb_plan_restaurant", 
+        joinColumns = @JoinColumn(name = "plan_id"),
+        inverseJoinColumns = @JoinColumn(name = "restaurant_id") 
+    )
+    private List<RestaurantEntity> restaurants;
+	
+	
 	public Long getId() {
 		return id;
 	}
@@ -54,20 +67,12 @@ public class ProductEntity {
 		this.description = description;
 	}
 
-	public String getBrand() {
-		return brand;
+	public String getName() {
+		return name;
 	}
 
-	public void setBrand(String brand) {
-		this.brand = brand;
-	}
-
-	public String getModel() {
-		return model;
-	}
-
-	public void setModel(String model) {
-		this.model = model;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public double getPrice() {
@@ -117,6 +122,14 @@ public class ProductEntity {
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
 	}
+	
+	public List<RestaurantEntity> getRestaurants() {
+        return restaurants;
+    }
+
+    public void setRestaurants(List<RestaurantEntity> restaurants) {
+        this.restaurants = restaurants;
+    }
 	
 	
 }
