@@ -1,0 +1,5 @@
+ALTER TABLE tb_user
+ADD COLUMN notifications_enabled BOOLEAN DEFAULT TRUE,
+ADD COLUMN dark_mode_enabled BOOLEAN DEFAULT FALSE,
+ADD COLUMN font_size VARCHAR(10) DEFAULT 'SMALL',
+ADD COLUMN preferred_currency VARCHAR(3) DEFAULT 'BRL';

@@ -37,6 +37,20 @@ public class UserEntity implements UserDetails{
 	@Column
 	@Enumerated(EnumType.ORDINAL)
 	private UserType type;
+	
+	@Column(name = "notifications_enabled", columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean notificationsEnabled = true;
+
+    @Column(name = "dark_mode_enabled", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean darkModeEnabled = false;
+
+    @Column(name = "font_size")
+    @Enumerated(EnumType.STRING)
+    private FontSize fontSize = FontSize.SMALL;
+
+    @Column(name = "preferred_currency", columnDefinition = "VARCHAR(3) DEFAULT 'BRL'")
+    private String preferredCurrency = "BRL";
+	
 
 	public Long getId() {
 		return id;
@@ -89,8 +103,37 @@ public class UserEntity implements UserDetails{
 	public String getUsername() {
 		return getEmail();
 	}
-
-
 	
+	public boolean isNotificationsEnabled() {
+        return notificationsEnabled;
+    }
+
+    public void setNotificationsEnabled(boolean notificationsEnabled) {
+        this.notificationsEnabled = notificationsEnabled;
+    }
+
+    public boolean isDarkModeEnabled() {
+        return darkModeEnabled;
+    }
+
+    public void setDarkModeEnabled(boolean darkModeEnabled) {
+        this.darkModeEnabled = darkModeEnabled;
+    }
+
+    public FontSize getFontSize() {
+        return fontSize;
+    }
+
+    public void setFontSize(FontSize fontSize) {
+        this.fontSize = fontSize;
+    }
+
+    public String getPreferredCurrency() {
+        return preferredCurrency;
+    }
+
+    public void setPreferredCurrency(String preferredCurrency) {
+        this.preferredCurrency = preferredCurrency;
+    }
 	
 }
