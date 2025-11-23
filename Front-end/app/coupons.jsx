@@ -1,14 +1,27 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import BottomNavBar from '../components/BottomNavBar';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 export default function CouponsScreen() {
+  const [loading, setLoading] = useState(false);
+
+  const handleNavigation = (path) => {
+    setLoading(true);
+    setTimeout(() => {
+      if (path === 'back') {
+        router.back();
+      } else {
+        router.push(path);
+      }
+      setLoading(false);
+    }, 200);
+  };
   const availableCoupons = [
-    { id: 1, name: 'Cupom Fast Food', discount: '30%' },
-    { id: 2, name: 'Cupom Fast Food', discount: '30%' },
-    { id: 3, name: 'Cupom Fast Food', discount: '30%' },
-    { id: 4, name: 'Cupom Fast Food', discount: '30%' },
+    { id: 1, name: 'Plano Fast Food', validity: '00/00/0000' },
   ];
 
   const usedCoupons = [
@@ -19,10 +32,10 @@ export default function CouponsScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#7A4F3B" />
+        <TouchableOpacity onPress={() => handleNavigation('back')} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#792F14" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Meus Cupons</Text>
+        <Text style={styles.headerTitle}>Minhas assinaturas</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -31,18 +44,19 @@ export default function CouponsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Seção Cupons Disponíveis */}
+        {/* Seção Planos Disponíveis */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cupons Disponíveis</Text>
+          <Text style={styles.sectionTitle}>Planos Disponíveis</Text>
           
           {availableCoupons.map((coupon) => (
-            <TouchableOpacity key={coupon.id} style={styles.couponCard}>
-              <Text style={styles.couponName}>{coupon.name}</Text>
-              <Text style={styles.couponDiscount}>{coupon.discount}</Text>
-            </TouchableOpacity>
+            <View key={coupon.id} style={styles.couponWrapper}>
+              <TouchableOpacity style={styles.couponCard}>
+                <Text style={styles.couponName}>{coupon.name}</Text>
+                <MaterialIcons name="chevron-right" size={24} color="#792F14" />
+              </TouchableOpacity>
+              <Text style={styles.validityText}>Validade: {coupon.validity}</Text>
+            </View>
           ))}
-
-          <Text style={styles.validityText}>Validade: 00/00/0000</Text>
         </View>
 
         {/* Seção Cupons Utilizados */}
@@ -50,10 +64,12 @@ export default function CouponsScreen() {
           <Text style={styles.sectionTitle}>Cupons Utilizados</Text>
           
           {usedCoupons.map((coupon) => (
-            <TouchableOpacity key={coupon.id} style={styles.couponCard}>
-              <Text style={styles.couponName}>{coupon.name}</Text>
-              <Text style={styles.couponDiscount}>{coupon.discount}</Text>
-            </TouchableOpacity>
+            <View key={coupon.id} style={styles.couponWrapper}>
+              <TouchableOpacity style={styles.couponCard}>
+                <Text style={styles.couponName}>{coupon.name}</Text>
+                <Text style={styles.couponDiscount}>{coupon.discount}</Text>
+              </TouchableOpacity>
+            </View>
           ))}
         </View>
 
@@ -62,39 +78,10 @@ export default function CouponsScreen() {
       </ScrollView>
 
       {/* Barra de Navegação Inferior */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/home')}
-        >
-          <MaterialIcons name="home" size={28} color="#9D7A6B" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/search')}
-        >
-          <MaterialIcons name="search" size={28} color="#9D7A6B" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <View style={styles.activeNavItem}>
-            <MaterialIcons name="local-offer" size={28} color="#E07A5F" />
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/cart')}
-        >
-          <View style={styles.cartContainer}>
-            <MaterialIcons name="shopping-cart" size={28} color="#9D7A6B" />
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>1</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </View>
+      <BottomNavBar activeRoute="coupons" />
+
+      {/* Loading Overlay */}
+      <LoadingOverlay visible={loading} />
     </SafeAreaView>
   );
 }
@@ -116,9 +103,9 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#7A4F3B',
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#792F14',
     flex: 1,
     textAlign: 'center',
   },
@@ -130,108 +117,58 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 40,
+    paddingTop: 20,
   },
   section: {
     paddingHorizontal: 20,
     marginBottom: 30,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#7A4F3B',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#792F14',
     marginBottom: 16,
   },
-  couponCard: {
-    backgroundColor: '#EADDCB',
+  couponWrapper: {
+    backgroundColor: '#FAEDC3',
     borderRadius: 12,
-    padding: 20,
-    marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    padding: 12,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
   },
+  couponCard: {
+    backgroundColor: '#FFF7DD',
+    borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   couponName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#7A4F3B',
+    fontWeight: '400',
+    color: '#792F14',
   },
   couponDiscount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#7A4F3B',
+    color: '#792F14',
   },
   validityText: {
-    fontSize: 12,
-    color: '#9D7A6B',
+    fontSize: 11,
+    color: '#8B6F47',
     textAlign: 'right',
     marginTop: 8,
   },
   bottomSpacer: {
-    height: 80,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#EADDCB',
-    paddingVertical: 12,
-    paddingBottom: Platform.OS === 'ios' ? 30 : 12,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
-  },
-  activeNavItem: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#EADDCB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartContainer: {
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: '#FF4444',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#EADDCB',
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
+    height: 130,
   },
 });
 

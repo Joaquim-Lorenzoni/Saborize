@@ -1,17 +1,22 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 // Dados dos planos disponíveis
 const plansData = {
   'fast-food': {
     id: 1,
     name: 'Plano de Fast Food Saborize',
-    emoji: '🍔',
-    description: 'Por apenas R$ 30/mês recebe cupons com descontos exclusivos em diversos restaurantes de fast food da cidade.',
-    price: 30.00,
+    image: require('../assets/images/FAST FOOD.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
     restaurants: [
       'McDonald\'s',
       'Burger King',
@@ -24,9 +29,13 @@ const plansData = {
   'saudavel': {
     id: 2,
     name: 'Plano Saudável Saborize',
-    emoji: '🥗',
-    description: 'Por apenas R$ 25/mês recebe cupons com descontos exclusivos em restaurantes saudáveis e opções nutritivas da cidade.',
-    price: 25.00,
+    image: require('../assets/images/SAUDAVEL.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
     restaurants: [
       'Green Kitchen',
       'Salad Bowl',
@@ -38,9 +47,13 @@ const plansData = {
   'tortaria': {
     id: 3,
     name: 'Plano Tortaria Saborize',
-    emoji: '🍰',
-    description: 'Por apenas R$ 35/mês recebe cupons com descontos exclusivos em diversas tortarias e confeitarias da cidade.',
-    price: 35.00,
+    image: require('../assets/images/TORTA.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
     restaurants: [
       'Torta Doce',
       'Confeitaria Central',
@@ -49,11 +62,150 @@ const plansData = {
       'Doce Vida',
     ],
   },
+  'italiana': {
+    id: 4,
+    name: 'Plano Italiana Saborize',
+    image: require('../assets/images/ITALIANO.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
+    restaurants: [
+      'Nonna Pasta',
+      'La Trattoria',
+      'Bella Italia',
+      'Pizza & Pasta',
+      'Ristorante Romano',
+    ],
+  },
+  'asiatica': {
+    id: 5,
+    name: 'Plano Comida Asiática Saborize',
+    image: require('../assets/images/SUSHI.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
+    restaurants: [
+      'Sushi Bar',
+      'Tokyo Taste',
+      'China in Box',
+      'Thai Express',
+      'Asia Food',
+    ],
+  },
+  'drinkeries': {
+    id: 6,
+    name: 'Plano Drinkeria Saborize',
+    image: require('../assets/images/DRINKS.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
+    restaurants: [
+      'Bar do João',
+      'Drinks & Co',
+      'Tropical Bar',
+      'Lounge 21',
+      'Happy Hour',
+    ],
+  },
+  'vegetariano': {
+    id: 7,
+    name: 'Plano Vegetariano Saborize',
+    image: require('../assets/images/VEGETARIANO.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
+    restaurants: [
+      'Veggie Life',
+      'Green Garden',
+      'Plant Power',
+      'Vegano & Cia',
+      'Natural Food',
+    ],
+  },
+  'mexicana': {
+    id: 8,
+    name: 'Plano Mexicana Saborize',
+    image: require('../assets/images/MEXICANO.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
+    restaurants: [
+      'Taco Bell',
+      'El Mariachi',
+      'Cantina Mexicana',
+      'Burrito Express',
+      'Sabor Mexicano',
+    ],
+  },
+  'churrascaria': {
+    id: 9,
+    name: 'Plano Churrascaria Saborize',
+    image: require('../assets/images/CHURRASCO.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
+    restaurants: [
+      'Grill Master',
+      'Churrasco Premium',
+      'Espeto de Ouro',
+      'Pampa Grill',
+      'Carne & Brasa',
+    ],
+  },
+  'padaria': {
+    id: 10,
+    name: 'Plano Cafeteria Saborize',
+    image: require('../assets/images/CAFE.png'),
+    priceText: 'R$ 10/mês',
+    coupons: '5 cupons de 25% de desconto',
+    validity: 'até no máximo R$ 10,00.',
+    savings: 'cerca de R$ 40,00',
+    frequency: 'todos mês.',
+    price: 10.00,
+    restaurants: [
+      'Pão Quente',
+      'Cafeteria Central',
+      'Arte do Pão',
+      'Delícias da Manhã',
+      'Cafeteria Moderna',
+    ],
+  },
 };
 
 export default function PlanDetailsScreen() {
   const params = useLocalSearchParams();
   const [showRestaurants, setShowRestaurants] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleNavigation = (path, params = {}) => {
+    setLoading(true);
+    setTimeout(() => {
+      if (path === 'back') {
+        router.back();
+      } else {
+        router.push({ pathname: path, params });
+      }
+      setLoading(false);
+    }, 200);
+  };
 
   // Tratar parâmetros que podem vir como array ou string
   const planId = Array.isArray(params.planId) ? params.planId[0] : params.planId;
@@ -64,7 +216,7 @@ export default function PlanDetailsScreen() {
   
   // Verificar se é admin e se o plano pode ser editado
   const isAdminView = isAdminParam === 'true' || isAdminParam === true;
-  const editablePlans = ['fast-food', 'saudavel', 'tortaria'];
+  const editablePlans = ['fast-food', 'saudavel', 'tortaria', 'italiana', 'asiatica', 'drinkeries', 'vegetariano', 'mexicana', 'churrascaria', 'padaria'];
   const canEdit = isAdminView && planId && editablePlans.includes(String(planId));
   
   // Debug - remover depois
@@ -75,20 +227,17 @@ export default function PlanDetailsScreen() {
   const handleAddToCart = () => {
     // TODO: Implementar lógica de adicionar ao carrinho
     // Por enquanto, apenas navega para o carrinho
-    router.push('/cart');
+    handleNavigation('/cart');
   };
 
   const handleEditPlan = () => {
     // TODO: Implementar navegação para edição do plano
     // Por enquanto, navega para a tela de adicionar plano com dados preenchidos
-    router.push({ 
-      pathname: '/add-plan', 
-      params: { 
-        editMode: 'true',
-        planId: planId,
-        title: plan.name,
-        description: plan.description,
-      } 
+    handleNavigation('/add-plan', { 
+      editMode: 'true',
+      planId: planId,
+      title: plan.name,
+      description: plan.description,
     });
   };
 
@@ -96,8 +245,8 @@ export default function PlanDetailsScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#7A4F3B" />
+        <TouchableOpacity onPress={() => handleNavigation('back')} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#792F14" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {plan.name}
@@ -121,40 +270,31 @@ export default function PlanDetailsScreen() {
               <Text style={styles.editButtonText}>Editar plano</Text>
             </TouchableOpacity>
           )}
-          <Text style={styles.planEmoji}>{plan.emoji}</Text>
+          <Image 
+            source={plan.image}
+            style={styles.planImage}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Descrição do Plano */}
         <View style={styles.descriptionContainer}>
-          <Text style={styles.descriptionText}>{plan.description}</Text>
+          <Text style={styles.descriptionText}>
+            Por apenas <Text style={styles.highlightText}>{plan.priceText}</Text> receba cupons com descontos exclusivos em diversos restaurantes de fast food da cidade.
+          </Text>
+          
+          <Text style={styles.descriptionText}>
+            Receba <Text style={styles.highlightText}>{plan.coupons}</Text> de {plan.validity}
+          </Text>
+          
+          <Text style={styles.descriptionText}>
+            Economize <Text style={styles.highlightText}>{plan.savings}</Text> {plan.frequency}
+          </Text>
         </View>
 
         {/* Dropdown "Onde aceita" */}
         <View style={styles.dropdownContainer}>
-          <TouchableOpacity 
-            style={styles.dropdownButton}
-            onPress={() => setShowRestaurants(!showRestaurants)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.dropdownText}>Onde aceita</Text>
-            <MaterialIcons 
-              name={showRestaurants ? "keyboard-arrow-up" : "keyboard-arrow-down"} 
-              size={24} 
-              color="#7A4F3B" 
-            />
-          </TouchableOpacity>
-
-          {/* Lista de Restaurantes (expandível) */}
-          {showRestaurants && (
-            <View style={styles.restaurantsList}>
-              {plan.restaurants.map((restaurant, index) => (
-                <View key={index} style={styles.restaurantItem}>
-                  <MaterialIcons name="restaurant" size={20} color="#7A4F3B" />
-                  <Text style={styles.restaurantName}>{restaurant}</Text>
-                </View>
-              ))}
-            </View>
-          )}
+          <Text style={styles.dropdownText}>Onde aceita</Text>
         </View>
 
         {/* Espaço para o botão fixo */}
@@ -171,6 +311,9 @@ export default function PlanDetailsScreen() {
           <Text style={styles.addToCartButtonText}>Adicionar ao Carrinho</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Loading Overlay */}
+      <LoadingOverlay visible={loading} />
     </SafeAreaView>
   );
 }
@@ -178,7 +321,7 @@ export default function PlanDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F0E3',
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
@@ -187,8 +330,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EADDCB',
   },
   backButton: {
     padding: 4,
@@ -196,8 +337,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '600',
-    color: '#7A4F3B',
+    fontWeight: '500',
+    color: '#792F14',
     marginLeft: 12,
     textAlign: 'center',
   },
@@ -212,21 +353,21 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    backgroundColor: '#FFF8E1',
+    backgroundColor: '#FAEDC3',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
-    marginBottom: 20,
+    paddingVertical: 50,
+    marginBottom: 30,
     position: 'relative',
   },
   editButton: {
     position: 'absolute',
     top: 16,
     right: 16,
-    backgroundColor: '#EADDCB',
+    backgroundColor: '#FAEDC3',
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: '#7A4F3B',
+    borderColor: '#792F14',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -242,82 +383,57 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontSize: 14,
-    color: '#7A4F3B',
+    color: '#792F14',
     fontWeight: '600',
   },
-  planEmoji: {
-    fontSize: 120,
+  planImage: {
+    width: 120,
+    height: 120,
   },
   descriptionContainer: {
     paddingHorizontal: 20,
     marginBottom: 30,
   },
   descriptionText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#7A4F3B',
-    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#333333',
+    marginBottom: 12,
+  },
+  highlightText: {
+    color: '#792F14',
+    fontWeight: '600',
   },
   dropdownContainer: {
-    paddingHorizontal: 20,
+    marginHorizontal: 20,
     marginBottom: 20,
-  },
-  dropdownButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#EADDCB',
+    borderStyle: 'dashed',
+    borderColor: '#792F14',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
   dropdownText: {
-    fontSize: 16,
-    color: '#7A4F3B',
+    fontSize: 14,
+    color: '#792F14',
     fontWeight: '500',
   },
-  restaurantsList: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#EADDCB',
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-    paddingVertical: 8,
-    marginTop: -1,
-  },
-  restaurantItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8F0E3',
-  },
-  restaurantName: {
-    fontSize: 15,
-    color: '#7A4F3B',
-    marginLeft: 12,
-  },
   bottomSpacer: {
-    height: 20,
+    height: 100,
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#F8F0E3',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: Platform.OS === 'ios' ? 30 : 16,
-    borderTopWidth: 1,
-    borderTopColor: '#EADDCB',
   },
   addToCartButton: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#792F14',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -325,8 +441,8 @@ const styles = StyleSheet.create({
   },
   addToCartButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

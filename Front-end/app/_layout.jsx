@@ -27,20 +27,26 @@ export default function RootLayout() {
 
   return (
     <>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="register" options={{ headerShown: false }} />
-        <Stack.Screen name="home" options={{ headerShown: false }} />
-        <Stack.Screen name="profile" options={{ headerShown: false }} />
-        <Stack.Screen name="coupons" options={{ headerShown: false }} />
-        <Stack.Screen name="cart" options={{ headerShown: false }} />
-        <Stack.Screen name="search" options={{ headerShown: false }} />
-        <Stack.Screen name="order-success" options={{ headerShown: false }} />
-        <Stack.Screen name="plan-details" options={{ headerShown: false }} />
-        <Stack.Screen name="admin" options={{ headerShown: false }} />
-        <Stack.Screen name="add-plan" options={{ headerShown: false }} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#FAEDC3' },
+          animation: 'fade',
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="home" />
+        <Stack.Screen name="profile" />
+        <Stack.Screen name="coupons" />
+        <Stack.Screen name="cart" />
+        <Stack.Screen name="search" />
+        <Stack.Screen name="order-success" />
+        <Stack.Screen name="plan-details" />
+        <Stack.Screen name="admin" />
+        <Stack.Screen name="add-plan" />
       </Stack>
-      <StatusBar style="dark" />
+      <StatusBar style="dark" backgroundColor="#FAEDC3" />
     </>
   );
 }

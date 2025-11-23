@@ -1,62 +1,60 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BottomNavBar from '../components/BottomNavBar';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 export default function HomeScreen() {
+  const [loading, setLoading] = useState(false);
+
+  const handleNavigation = (path, params = {}) => {
+    setLoading(true);
+    setTimeout(() => {
+      router.push({ pathname: path, params });
+      setLoading(false);
+    }, 200);
+  };
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Cabeçalho */}
+    <View style={styles.container}>
+      {/* Topo Amarelo com Header  */}
+      <View style={styles.topSection}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerTitle}>Tela Inicial</Text>
             <Text style={styles.greeting}>Olá, Nome do Usuário</Text>
           </View>
           <TouchableOpacity 
             style={styles.avatarContainer}
-            onPress={() => router.push('/profile')}
+            onPress={() => handleNavigation('/profile')}
           >
             <Text style={styles.avatar}>🦝</Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Container Branco com Bordas Arredondadas */}
+      <ScrollView 
+        style={styles.whiteContainer}
+        showsVerticalScrollIndicator={false}
+      >
 
         {/* Banner Promocional */}
         <View style={styles.bannerContainer}>
-          <View style={styles.banner}>
-            <View style={styles.bannerImages}>
-              {/* Imagens de comida ao redor */}
-              <View style={[styles.foodImage, styles.foodTopLeft]}>
-                <Text style={styles.foodEmoji}>☕🍟</Text>
-              </View>
-              <View style={[styles.foodImage, styles.foodTopCenter]}>
-                <Text style={styles.foodEmoji}>🥗</Text>
-              </View>
-              <View style={[styles.foodImage, styles.foodTopRight]}>
-                <Text style={styles.foodEmoji}>🍝</Text>
-              </View>
-              <View style={[styles.foodImage, styles.foodBottomLeft]}>
-                <Text style={styles.foodEmoji}>🍣🥩</Text>
-              </View>
-              <View style={[styles.foodImage, styles.foodBottomCenter]}>
-                <Text style={styles.foodEmoji}>🍦</Text>
-              </View>
-              <View style={[styles.foodImage, styles.foodBottomRight]}>
-                <Text style={styles.foodEmoji}>🍪🍰</Text>
-              </View>
-            </View>
-            <Text style={styles.bannerText}>Mais sabor, menos preço.</Text>
-          </View>
+          <Image 
+            source={require('../assets/images/BANNER P.png')}
+            style={styles.bannerImage}
+            resizeMode="cover"
+          />
         </View>
 
         {/* Seção de Categorias */}
         <View style={styles.categoriesSection}>
+          <Text style={styles.sectionTitle}>Planos especiais para você</Text>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Planos especiais para você</Text>
-            <TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.seeMoreButton}
+              onPress={() => handleNavigation('/search')}
+            >
               <Text style={styles.seeMoreLink}>Ver Mais</Text>
             </TouchableOpacity>
           </View>
@@ -65,42 +63,69 @@ export default function HomeScreen() {
             {/* Fast Food */}
             <TouchableOpacity 
               style={styles.categoryCard}
-              onPress={() => router.push({ pathname: '/plan-details', params: { planId: 'fast-food' } })}
+              onPress={() => handleNavigation('/plan-details', { planId: 'fast-food' })}
             >
               <View style={styles.categoryImageContainer}>
-                <Text style={styles.categoryEmoji}>🍔</Text>
+                <Image 
+                  source={require('../assets/images/FAST FOOD.png')}
+                  style={styles.categoryImage}
+                  resizeMode="contain"
+                />
               </View>
-              <Text style={styles.categoryName}>Fast Food</Text>
+              <View style={styles.categoryNameContainer}>
+                <Text style={styles.categoryName}>Fast Food</Text>
+              </View>
             </TouchableOpacity>
 
             {/* Saudável */}
             <TouchableOpacity 
               style={styles.categoryCard}
-              onPress={() => router.push({ pathname: '/plan-details', params: { planId: 'saudavel' } })}
+              onPress={() => handleNavigation('/plan-details', { planId: 'saudavel' })}
             >
               <View style={styles.categoryImageContainer}>
-                <Text style={styles.categoryEmoji}>🥗</Text>
+                <Image 
+                  source={require('../assets/images/SAUDAVEL.png')}
+                  style={styles.categoryImage}
+                  resizeMode="contain"
+                />
               </View>
-              <Text style={styles.categoryName}>Saudável</Text>
+              <View style={styles.categoryNameContainer}>
+                <Text style={styles.categoryName}>Saudável</Text>
+              </View>
             </TouchableOpacity>
 
             {/* Tortaria */}
             <TouchableOpacity 
               style={styles.categoryCard}
-              onPress={() => router.push({ pathname: '/plan-details', params: { planId: 'tortaria' } })}
+              onPress={() => handleNavigation('/plan-details', { planId: 'tortaria' })}
             >
               <View style={styles.categoryImageContainer}>
-                <Text style={styles.categoryEmoji}>🍰</Text>
+                <Image 
+                  source={require('../assets/images/TORTA.png')}
+                  style={styles.categoryImage}
+                  resizeMode="contain"
+                />
               </View>
-              <Text style={styles.categoryName}>Tortaria</Text>
+              <View style={styles.categoryNameContainer}>
+                <Text style={styles.categoryName}>Tortaria</Text>
+              </View>
             </TouchableOpacity>
 
             {/* Italiana */}
-            <TouchableOpacity style={styles.categoryCard}>
+            <TouchableOpacity 
+              style={styles.categoryCard}
+              onPress={() => handleNavigation('/plan-details', { planId: 'italiana' })}
+            >
               <View style={styles.categoryImageContainer}>
-                <Text style={styles.categoryEmoji}>🍝</Text>
+                <Image 
+                  source={require('../assets/images/ITALIANO.png')}
+                  style={styles.categoryImage}
+                  resizeMode="contain"
+                />
               </View>
-              <Text style={styles.categoryName}>Italiana</Text>
+              <View style={styles.categoryNameContainer}>
+                <Text style={styles.categoryName}>Italiana</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -110,161 +135,101 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* Barra de Navegação Inferior */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/home')}
-        >
-          <MaterialIcons name="home" size={28} color="#7A4F3B" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/search')}
-        >
-          <MaterialIcons name="search" size={28} color="#9D7A6B" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/coupons')}
-        >
-          <View style={styles.activeNavItem}>
-            <MaterialIcons name="local-offer" size={28} color="#E07A5F" />
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/cart')}
-        >
-          <View style={styles.cartContainer}>
-            <MaterialIcons name="shopping-cart" size={28} color="#9D7A6B" />
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>1</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <BottomNavBar activeRoute="home" />
+
+      {/* Loading Overlay */}
+      <LoadingOverlay visible={loading} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F0E3',
+    backgroundColor: '#FAEDC3',
   },
-  scrollView: {
-    flex: 1,
+  topSection: {
+    backgroundColor: '#FAEDC3',
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 100,
+    justifyContent: 'center',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 14,
-    color: '#9D7A6B',
-    marginBottom: 4,
+    marginTop: 20,
   },
   greeting: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#7A4F3B',
+    color: '#792F14',
+  },
+  whiteContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -30,
+    paddingTop: 30,
   },
   avatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#EADDCB',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   avatar: {
-    fontSize: 30,
+    fontSize: 35,
   },
   bannerContainer: {
     paddingHorizontal: 20,
     marginBottom: 30,
+    marginTop: 10,
   },
-  banner: {
-    backgroundColor: '#EADDCB',
+  bannerImage: {
+    width: '100%',
+    height: 220,
     borderRadius: 20,
-    height: 200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
     overflow: 'hidden',
-    paddingHorizontal: 20,
-  },
-  bannerImages: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  foodImage: {
-    position: 'absolute',
-  },
-  foodTopLeft: {
-    top: 10,
-    left: 10,
-  },
-  foodTopCenter: {
-    top: 15,
-    alignSelf: 'center',
-  },
-  foodTopRight: {
-    top: 10,
-    right: 10,
-  },
-  foodBottomLeft: {
-    bottom: 15,
-    left: 15,
-  },
-  foodBottomCenter: {
-    bottom: 20,
-    alignSelf: 'center',
-  },
-  foodBottomRight: {
-    bottom: 15,
-    right: 15,
-  },
-  foodEmoji: {
-    fontSize: 24,
-  },
-  bannerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#7A4F3B',
-    textAlign: 'center',
-    zIndex: 1,
   },
   categoriesSection: {
     paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
+    marginTop: 10,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#7A4F3B',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#792F14',
+    textAlign: 'center',
+    marginBottom: 8,
+    marginTop: -10,
+  },
+  sectionHeader: {
+    alignItems: 'flex-end',
+    marginBottom: 15,
+  },
+  seeMoreButton: {
+    alignSelf: 'flex-end',
   },
   seeMoreLink: {
     fontSize: 14,
-    color: '#B8A99A',
+    color: '#D5924D',
     fontWeight: '500',
+    textDecorationLine: 'underline',
   },
   categoriesGrid: {
     flexDirection: 'row',
@@ -273,76 +238,46 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     width: '47%',
-    backgroundColor: '#EADDCB',
+    backgroundColor: '#FFF7DD',
     borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
     marginBottom: 15,
-    minHeight: 140,
-    justifyContent: 'space-between',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   categoryImageContainer: {
-    marginBottom: 10,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 80,
   },
-  categoryEmoji: {
-    fontSize: 50,
+  categoryImage: {
+    width: 70,
+    height: 70,
+  },
+  categoryNameContainer: {
+    backgroundColor: '#FAEDC3',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#F0E0C0',
   },
   categoryName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7A4F3B',
+    color: '#792F14',
     textAlign: 'center',
   },
   bottomSpacer: {
-    height: 80,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    paddingBottom: Platform.OS === 'ios' ? 30 : 12,
-    borderTopWidth: 1,
-    borderTopColor: '#EADDCB',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
-  },
-  activeNavItem: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#EADDCB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartContainer: {
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: '#FF4444',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
+    height: 130,
   },
 });
 

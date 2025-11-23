@@ -1,16 +1,32 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 export default function CartScreen() {
-  // Dados mockados do carrinho
+  const [loading, setLoading] = useState(false);
+
+  const handleNavigation = (path) => {
+    setLoading(true);
+    setTimeout(() => {
+      if (path === 'back') {
+        router.back();
+      } else {
+        router.push(path);
+      }
+      setLoading(false);
+    }, 200);
+  };
+
+  // Dados mockados do carrinho (precisa de alteração ainda)
   const cartItems = [
     {
       id: 1,
       name: 'Plano Fast Food',
-      description: 'A opção ideal pra quem busca uma refeição...',
-      price: 30.00,
+      description: 'Disponível 24 horas, diversas variedades.',
+      price: 10.00,
       image: '🍔',
       quantity: 1,
     },
@@ -23,8 +39,8 @@ export default function CartScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#7A4F3B" />
+        <TouchableOpacity onPress={() => handleNavigation('back')} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#792F14" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Carrinho</Text>
         <View style={styles.placeholder} />
@@ -39,32 +55,34 @@ export default function CartScreen() {
         <View style={styles.bagSection}>
           <View style={styles.bagHeader}>
             <Text style={styles.bagTitle}>Minha Sacola</Text>
-            <Text style={styles.itemsCount}>Items: {totalItems}</Text>
+            <Text style={styles.itemsCount}>Itens: {totalItems}</Text>
           </View>
 
           {/* Lista de Itens do Carrinho */}
           {cartItems.map((item) => (
-            <View key={item.id} style={styles.itemCard}>
-              {/* Imagem do Produto */}
-              <View style={styles.itemImageContainer}>
-                <Text style={styles.itemImage}>{item.image}</Text>
-              </View>
+            <View key={item.id} style={styles.itemWrapper}>
+              <View style={styles.itemCard}>
+                {/* Imagem do Produto */}
+                <View style={styles.itemImageContainer}>
+                  <Text style={styles.itemImage}>{item.image}</Text>
+                </View>
 
-              {/* Informações do Produto */}
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemDescription} numberOfLines={2}>
-                  {item.description}
-                </Text>
-                <Text style={styles.itemPrice}>R$ {item.price.toFixed(2).replace('.', ',')}</Text>
+                {/* Informações do Produto */}
+                <View style={styles.itemInfo}>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemDescription} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                  <Text style={styles.itemPrice}>R$ {item.price.toFixed(2).replace('.', ',')}</Text>
+                </View>
               </View>
+              
+              {/* Link Remover Item */}
+              <TouchableOpacity style={styles.removeItemButton}>
+                <Text style={styles.removeItemText}>Remover Item</Text>
+              </TouchableOpacity>
             </View>
           ))}
-
-          {/* Link Remover Item */}
-          <TouchableOpacity style={styles.removeItemButton}>
-            <Text style={styles.removeItemText}>Remover item</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Seção de Resumo */}
@@ -82,7 +100,7 @@ export default function CartScreen() {
           {/* Botão Finalizar Compra */}
           <TouchableOpacity 
             style={styles.checkoutButton}
-            onPress={() => router.push('/order-success')}
+            onPress={() => handleNavigation('/order-success')}
           >
             <Text style={styles.checkoutButtonText}>Finalizar Compra</Text>
           </TouchableOpacity>
@@ -92,41 +110,8 @@ export default function CartScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Barra de Navegação Inferior */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/home')}
-        >
-          <MaterialIcons name="home" size={28} color="#9D7A6B" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/search')}
-        >
-          <MaterialIcons name="search" size={28} color="#9D7A6B" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/coupons')}
-        >
-          <MaterialIcons name="local-offer" size={28} color="#9D7A6B" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/cart')}
-        >
-          <View style={styles.cartContainer}>
-            <MaterialIcons name="shopping-cart" size={28} color="#E07A5F" />
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{totalItems}</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </View>
+      {/* Loading Overlay */}
+      <LoadingOverlay visible={loading} />
     </SafeAreaView>
   );
 }
@@ -148,9 +133,9 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#7A4F3B',
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#792F14',
     flex: 1,
     textAlign: 'center',
   },
@@ -161,12 +146,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   bagSection: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 10,
+    paddingBottom: 120,
   },
   bagHeader: {
     flexDirection: 'row',
@@ -175,75 +161,81 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bagTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#7A4F3B',
+    color: '#792F14',
   },
   itemsCount: {
     fontSize: 14,
-    color: '#9D7A6B',
+    color: '#792F14',
   },
-  itemCard: {
-    backgroundColor: '#EADDCB',
+  itemWrapper: {
+    backgroundColor: '#FAEDC3',
     borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    marginBottom: 12,
+    padding: 12,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
   },
-  itemImageContainer: {
-    width: 80,
-    height: 80,
+  itemCard: {
+    backgroundColor: '#FFF7DD',
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    padding: 16,
+    flexDirection: 'row',
+  },
+  itemImageContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 8,
+    backgroundColor: '#FAEDC3',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   itemImage: {
-    fontSize: 40,
+    fontSize: 45,
   },
   itemInfo: {
     flex: 1,
     justifyContent: 'space-between',
   },
   itemName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#7A4F3B',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#792F14',
     marginBottom: 4,
   },
   itemDescription: {
-    fontSize: 14,
-    color: '#9D7A6B',
-    marginBottom: 8,
-    lineHeight: 18,
+    fontSize: 12,
+    color: '#8B6F47',
+    marginBottom: 6,
+    lineHeight: 16,
   },
   itemPrice: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7A4F3B',
+    color: '#792F14',
   },
   removeItemButton: {
     alignSelf: 'flex-end',
-    marginTop: 4,
+    marginTop: 8,
   },
   removeItemText: {
     fontSize: 14,
-    color: '#A0522D',
+    color: '#792F14',
     fontWeight: '500',
   },
   summarySection: {
-    backgroundColor: '#EADDCB',
+    backgroundColor: '#FFF7DD',
     marginHorizontal: 20,
-    marginTop: 20,
+    marginTop: 'auto',
+    marginBottom: 20,
     borderRadius: 12,
     padding: 20,
     shadowColor: '#000',
@@ -251,7 +243,7 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -262,75 +254,35 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   summaryLabel: {
-    fontSize: 16,
-    color: '#7A4F3B',
-    fontWeight: '500',
+    fontSize: 14,
+    color: '#792F14',
+    fontWeight: '400',
   },
   summaryValue: {
-    fontSize: 16,
-    color: '#7A4F3B',
-    fontWeight: '600',
+    fontSize: 14,
+    color: '#792F14',
+    fontWeight: '400',
   },
   summaryTotal: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#7A4F3B',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#792F14',
   },
   checkoutButton: {
-    backgroundColor: '#7A4F3B',
+    backgroundColor: '#792F14',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
+    marginTop: 16,
   },
   checkoutButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
   },
   bottomSpacer: {
-    height: 80,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    paddingBottom: Platform.OS === 'ios' ? 30 : 12,
-    borderTopWidth: 1,
-    borderTopColor: '#EADDCB',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
-  },
-  cartContainer: {
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: '#FF4444',
-    borderRadius: 10,
-    width: 20,
     height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
 });
 

@@ -3,10 +3,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import BottomNavBar from '../components/BottomNavBar';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
-// Dados dos planos para modo de edição
+// Dados do plano (precisa de alteração anda)
 const plansData = {
   'fast-food': {
     restaurants: ['McDonald\'s', 'Burger King', 'Subway', 'KFC', 'Giraffas', 'Bob\'s'],
@@ -28,8 +30,17 @@ export default function AddPlanScreen() {
   const [restaurants, setRestaurants] = useState([]);
   const [showAddRestaurant, setShowAddRestaurant] = useState(false);
   const [newRestaurant, setNewRestaurant] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Carregar restaurantes se estiver em modo de edição
+  const handleNavigation = (path) => {
+    setLoading(true);
+    setTimeout(() => {
+      router.back();
+      setLoading(false);
+    }, 200);
+  };
+
+  // Modo admin carregar restaurantes
   useEffect(() => {
     if (isEditMode && planId && plansData[planId]) {
       setRestaurants(plansData[planId].restaurants);
@@ -56,7 +67,7 @@ export default function AddPlanScreen() {
       console.log('Adicionar plano:', { title, description, restaurants });
     }
     // Por enquanto, apenas volta para a tela anterior
-    router.back();
+    handleNavigation('back');
   };
 
   return (
@@ -67,7 +78,7 @@ export default function AddPlanScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => handleNavigation('back')} style={styles.backButton}>
             <MaterialIcons name="arrow-back" size={24} color="#7A4F3B" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
@@ -208,6 +219,12 @@ export default function AddPlanScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Barra de Navegação Inferior */}
+        <BottomNavBar activeRoute="home" />
+
+        {/* Loading Overlay */}
+        <LoadingOverlay visible={loading} />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -381,7 +398,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   bottomSpacer: {
-    height: 20,
+    height: 150,
   },
   footer: {
     backgroundColor: '#F8F0E3',

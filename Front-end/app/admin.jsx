@@ -3,9 +3,20 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import BottomNavBar from '../components/BottomNavBar';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 export default function AdminScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleNavigation = (path, params = {}) => {
+    setLoading(true);
+    setTimeout(() => {
+      router.push({ pathname: path, params });
+      setLoading(false);
+    }, 200);
+  };
 
   const planCategories = [
     { id: 1, name: 'Fast Food', emoji: '🍔', planId: 'fast-food' },
@@ -60,7 +71,7 @@ export default function AdminScreen() {
         {/* Botão Adicionar Novo Plano */}
         <TouchableOpacity 
           style={styles.addPlanButton}
-          onPress={() => router.push('/add-plan')}
+          onPress={() => handleNavigation('/add-plan')}
         >
           <MaterialIcons name="add" size={24} color="#FF6B35" />
           <Text style={styles.addPlanButtonText}>Adicionar um novo plano</Text>
@@ -72,12 +83,9 @@ export default function AdminScreen() {
             <TouchableOpacity 
               key={category.id} 
               style={styles.categoryCard}
-              onPress={() => router.push({ 
-                pathname: '/plan-details', 
-                params: { 
-                  planId: category.planId,
-                  isAdmin: 'true'
-                } 
+              onPress={() => handleNavigation('/plan-details', { 
+                planId: category.planId,
+                isAdmin: 'true'
               })}
             >
               <Text style={styles.categoryEmoji}>{category.emoji}</Text>
@@ -91,39 +99,10 @@ export default function AdminScreen() {
       </ScrollView>
 
       {/* Barra de Navegação Inferior */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <View style={styles.activeNavItem}>
-            <MaterialIcons name="home" size={28} color="#E07A5F" />
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/search')}
-        >
-          <MaterialIcons name="search" size={28} color="#9D7A6B" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/coupons')}
-        >
-          <MaterialIcons name="place" size={28} color="#9D7A6B" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={() => router.push('/cart')}
-        >
-          <View style={styles.cartContainer}>
-            <MaterialIcons name="shopping-cart" size={28} color="#9D7A6B" />
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>1</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </View>
+      <BottomNavBar activeRoute="home" />
+
+      {/* Loading Overlay */}
+      <LoadingOverlay visible={loading} />
     </SafeAreaView>
   );
 }
@@ -248,7 +227,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   bottomSpacer: {
-    height: 80,
+    height: 130,
   },
   bottomNav: {
     flexDirection: 'row',

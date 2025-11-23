@@ -3,19 +3,35 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
-  const [fontSize, setFontSize] = useState('small'); // 'small' or 'large'
+  const [fontSize, setFontSize] = useState('small');
   const [currency, setCurrency] = useState('Real');
+  const [loading, setLoading] = useState(false);
+
+  const handleNavigation = (path) => {
+    setLoading(true);
+    setTimeout(() => {
+      if (path === 'back') {
+        router.back();
+      } else if (path === 'logout') {
+        router.replace('/');
+      } else {
+        router.push(path);
+      }
+      setLoading(false);
+    }, 200);
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#7A4F3B" />
+        <TouchableOpacity onPress={() => handleNavigation('back')} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#792F14" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil</Text>
         <View style={styles.placeholder} />
@@ -38,7 +54,7 @@ export default function ProfileScreen() {
             <TextInput
               style={styles.input}
               placeholder="Exemplo@exemplo.com.br"
-              placeholderTextColor="#9D7A6B"
+              placeholderTextColor="#8B6F47"
               value="Exemplo@exemplo.com.br"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -54,7 +70,7 @@ export default function ProfileScreen() {
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: '#D4C4B8', true: '#7A4F3B' }}
+              trackColor={{ false: '#D4C4B8', true: '#792F14' }}
               thumbColor="#FFFFFF"
               ios_backgroundColor="#D4C4B8"
             />
@@ -66,7 +82,7 @@ export default function ProfileScreen() {
             <Switch
               value={darkModeEnabled}
               onValueChange={setDarkModeEnabled}
-              trackColor={{ false: '#D4C4B8', true: '#7A4F3B' }}
+              trackColor={{ false: '#D4C4B8', true: '#792F14' }}
               thumbColor="#FFFFFF"
               ios_backgroundColor="#D4C4B8"
             />
@@ -111,12 +127,18 @@ export default function ProfileScreen() {
         {/* Botão Sair da Conta */}
         <TouchableOpacity 
           style={styles.logoutButton}
-          onPress={() => router.replace('/')}
+          onPress={() => handleNavigation('logout')}
         >
           <Text style={styles.logoutText}>Sair da Conta</Text>
           <MaterialIcons name="logout" size={20} color="#7A4F3B" />
         </TouchableOpacity>
+
+        {/* Espaço para a barra de navegação */}
+        <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Loading Overlay */}
+      <LoadingOverlay visible={loading} />
     </SafeAreaView>
   );
 }
@@ -124,7 +146,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F0E3',
+    backgroundColor: '#FAEDC3',
   },
   header: {
     flexDirection: 'row',
@@ -132,7 +154,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#F8F0E3',
+    backgroundColor: '#FAEDC3',
   },
   backButton: {
     padding: 4,
@@ -140,7 +162,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#7A4F3B',
+    color: '#792F14',
     flex: 1,
     textAlign: 'center',
   },
@@ -160,22 +182,30 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#E07A5F',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#D2691E',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   avatar: {
-    fontSize: 60,
+    fontSize: 70,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#7A4F3B',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#792F14',
     marginBottom: 20,
   },
   inputGroup: {
@@ -183,32 +213,49 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    color: '#9D7A6B',
+    color: '#792F14',
     marginBottom: 8,
+    fontWeight: '500',
   },
   input: {
-    backgroundColor: '#EADDCB',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#7A4F3B',
+    color: '#792F14',
     borderWidth: 1,
-    borderColor: '#EADDCB',
+    borderColor: '#E8E8E8',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   settingsSection: {
     paddingHorizontal: 20,
     marginBottom: 30,
   },
   settingItem: {
-    backgroundColor: '#EADDCB',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   settingLabel: {
     fontSize: 16,
-    color: '#7A4F3B',
+    color: '#792F14',
     fontWeight: '500',
     marginBottom: 12,
   },
@@ -227,7 +274,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#7A4F3B',
+    borderColor: '#792F14',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
@@ -236,14 +283,14 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#7A4F3B',
+    backgroundColor: '#792F14',
   },
   radioLabel: {
     fontSize: 16,
-    color: '#7A4F3B',
+    color: '#792F14',
   },
   currencySelector: {
-    backgroundColor: '#7A4F3B',
+    backgroundColor: '#792F14',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -258,7 +305,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   logoutButton: {
-    backgroundColor: '#EADDCB',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -267,11 +314,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 20,
     gap: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   logoutText: {
     fontSize: 16,
-    color: '#7A4F3B',
+    color: '#792F14',
     fontWeight: '600',
+  },
+  bottomSpacer: {
+    height: 20,
   },
 });
 
