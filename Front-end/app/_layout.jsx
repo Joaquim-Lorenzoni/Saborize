@@ -3,12 +3,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
-// mantem a splash scren ate tudo carregar
+// Manter a splash screen visível enquanto o app carrega
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useEffect(() => {
-    // retira slpash screen quando tudo carregar
+    // Ocultar a splash screen quando o app estiver pronto
     const hideSplashScreen = async () => {
       try {
         await SplashScreen.hideAsync();
@@ -17,7 +17,7 @@ export default function RootLayout() {
       }
     };
 
-    // delay p tudo carregar
+    // Pequeno delay para garantir que tudo carregou
     const timer = setTimeout(() => {
       hideSplashScreen();
     }, 100);
