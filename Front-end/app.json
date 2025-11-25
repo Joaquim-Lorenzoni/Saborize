@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.Saborize"
     },
     "web": {
       "output": "static",
@@ -30,12 +31,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/images/LOGO.png",
+          "imageWidth": 250,
           "resizeMode": "contain",
-          "backgroundColor": "#F8F0E3",
+          "backgroundColor": "#FAEDC3",
           "dark": {
-            "backgroundColor": "#F8F0E3"
+            "backgroundColor": "#FAEDC3"
           }
         }
       ]

@@ -1,13 +1,18 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import BottomNavBar from '../components/BottomNavBar';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { useCurrency } from '../contexts/CurrencyContext';
+import planService from '../services/plan.service';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+  const [products, setProducts] = useState([]);
+  const { preferredCurrency } = useCurrency();
 
   const handleNavigation = (path, params = {}) => {
     setLoading(true);
@@ -17,121 +22,97 @@ export default function SearchScreen() {
     }, 200);
   };
 
-  const categories = [
-    { id: 1, name: 'Fast Food', image: require('../assets/images/FAST FOOD.png'), planId: 'fast-food' },
-    { id: 2, name: 'Saudável', image: require('../assets/images/SAUDAVEL.png'), planId: 'saudavel' },
-    { id: 3, name: 'Tortaria', image: require('../assets/images/TORTA.png'), planId: 'tortaria' },
-    { id: 4, name: 'Italiana', image: require('../assets/images/ITALIANO.png'), planId: 'italiana' },
-    { id: 5, name: 'Comida Asiática', image: require('../assets/images/SUSHI.png'), planId: 'asiatica' },
-    { id: 6, name: 'Drinkerias', image: require('../assets/images/DRINKS.png'), planId: 'drinkeries' },
-    { id: 7, name: 'Vegetariano', image: require('../assets/images/VEGETARIANO.png'), planId: 'vegetariano' },
-    { id: 8, name: 'Comida mexicana', image: require('../assets/images/MEXICANO.png'), planId: 'mexicana' },
-    { id: 9, name: 'Churrascaria', image: require('../assets/images/CHURRASCO.png'), planId: 'churrascaria' },
-    { id: 10, name: 'Cafeteria', image: require('../assets/images/CAFE.png'), planId: 'padaria' },
-  ];
+  /**
+   * Carregar produtos ao montar a tela
+   */
+  useEffect(() => {
+    loadInitialData();
+  }, []);
 
-  // Dados mockados de planos disponíveis para busca
-  const availablePlans = [
-    {
-      id: 1,
-      name: 'Plano Fast Food',
-      description: 'Disponível 24 horas, diversas variedades.',
-      price: 10.00,
-      category: 'Fast Food',
-      image: require('../assets/images/FAST FOOD.png'),
-      planId: 'fast-food',
-    },
-    {
-      id: 2,
-      name: 'Plano Saudável',
-      description: 'Opções leves e nutritivas para o seu dia.',
-      price: 10.00,
-      category: 'Saudável',
-      image: require('../assets/images/SAUDAVEL.png'),
-      planId: 'saudavel',
-    },
-    {
-      id: 3,
-      name: 'Plano Tortaria',
-      description: 'Doces e sobremesas deliciosas.',
-      price: 10.00,
-      category: 'Tortaria',
-      image: require('../assets/images/TORTA.png'),
-      planId: 'tortaria',
-    },
-    {
-      id: 4,
-      name: 'Plano Italiana',
-      description: 'Massas e pratos autênticos italianos.',
-      price: 10.00,
-      category: 'Italiana',
-      emoji: '🍝',
-      planId: 'italiana',
-    },
-    {
-      id: 5,
-      name: 'Plano Comida Asiática',
-      description: 'Sabores orientais únicos.',
-      price: 10.00,
-      category: 'Comida Asiática',
-      emoji: '🍣',
-      planId: 'asiatica',
-    },
-    {
-      id: 6,
-      name: 'Plano Drinkeria',
-      description: 'Drinks e bebidas especiais.',
-      price: 10.00,
-      category: 'Drinkeria',
-      emoji: '🍹',
-      planId: 'drinkeries',
-    },
-    {
-      id: 7,
-      name: 'Plano Vegetariano',
-      description: 'Opções vegetarianas deliciosas.',
-      price: 10.00,
-      category: 'Vegetariano',
-      emoji: '🥙',
-      planId: 'vegetariano',
-    },
-    {
-      id: 8,
-      name: 'Plano Mexicana',
-      description: 'Sabores mexicanos autênticos.',
-      price: 10.00,
-      category: 'Comida mexicana',
-      emoji: '🌮',
-      planId: 'mexicana',
-    },
-    {
-      id: 9,
-      name: 'Plano Churrascaria',
-      description: 'As melhores carnes da cidade.',
-      price: 10.00,
-      category: 'Churrascaria',
-      emoji: '🥩',
-      planId: 'churrascaria',
-    },
-    {
-      id: 10,
-      name: 'Plano Cafeteria',
-      description: 'Pães e doces fresquinhos.',
-      price: 10.00,
-      category: 'Cafeteria',
-      emoji: '🥐',
-      planId: 'padaria',
-    },
-  ];
+  /**
+   * Recarregar produtos quando moeda preferida mudar
+   */
+  useEffect(() => {
+    const currency = preferredCurrency || 'BRL';
+    loadProducts(currency);
+  }, [preferredCurrency]);
 
-  // Filtrar resultados baseado na busca
+  /**
+   * Carregar dados iniciais
+   */
+  const loadInitialData = async () => {
+    try {
+      setLoadingData(true);
+      
+      // Não recarregar moeda aqui - usar a moeda atual do contexto
+      // Isso evita resetar para BRL quando não está autenticado
+      
+      // Carregar produtos com moeda atual ou BRL como padrão
+      const currency = preferredCurrency || 'BRL';
+      await loadProducts(currency);
+      
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  /**
+   * Carregar produtos da API
+   */
+  const loadProducts = async (targetCurrency = 'BRL') => {
+    // Garantir que sempre temos uma moeda válida
+    const validCurrencies = ['BRL', 'USD', 'EUR'];
+    const currency = validCurrencies.includes(targetCurrency) ? targetCurrency : 'BRL';
+    
+    try {
+      console.log('📦 Carregando produtos com moeda:', currency);
+      const response = await planService.getAllPlans(currency, {
+        page: 0,
+        size: 100, // Buscar muitos produtos para filtrar no frontend
+        sort: 'description,ASC',
+      });
+      
+      // Se for paginação, pegar o conteúdo
+      const productsList = response.content || response || [];
+      console.log('✅ Produtos carregados:', productsList.length);
+      console.log('📋 Primeiros produtos:', productsList.slice(0, 3).map(p => p.name));
+      setProducts(productsList);
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar produtos:', error);
+      setProducts([]);
+    }
+  };
+
+  /**
+   * Filtrar produtos baseado na busca
+   */
   const filteredResults = searchQuery.trim()
-    ? availablePlans.filter(plan =>
-        plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        plan.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        plan.category.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? products.filter(product => {
+        if (!product) return false;
+        
+        const query = searchQuery.toLowerCase().trim();
+        const name = (product.name || '').toLowerCase();
+        const description = (product.description || '').toLowerCase();
+        
+        const matchesName = name.includes(query);
+        const matchesDescription = description.includes(query);
+        
+        return matchesName || matchesDescription;
+      })
     : [];
+
+  // Debug: Log quando buscar
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      console.log('🔍 Buscando:', searchQuery);
+      console.log('📦 Total de produtos:', products.length);
+      console.log('✅ Resultados encontrados:', filteredResults.length);
+    }
+  }, [searchQuery, products.length, filteredResults.length]);
+
 
   return (
     <View style={styles.container}>
@@ -171,66 +152,95 @@ export default function SearchScreen() {
           <MaterialIcons name="search" size={24} color="#792F14" style={styles.searchIcon} />
         </View>
 
-        {/* Resultados da Busca ou Grid de Categorias */}
-        {searchQuery.trim() && filteredResults.length > 0 ? (
-          <View style={styles.resultsContainer}>
-            {filteredResults.map((plan) => (
-              <TouchableOpacity 
-                key={plan.id} 
-                style={styles.resultCard}
-                onPress={() => handleNavigation('/plan-details', { planId: plan.planId })}
-              >
-                <View style={styles.resultImageContainer}>
-                  <Image 
-                    source={plan.image}
-                    style={styles.resultImage}
-                    resizeMode="contain"
-                  />
-                </View>
-                <View style={styles.resultInfo}>
-                  <Text style={styles.resultName}>{plan.name}</Text>
-                  <Text style={styles.resultDescription}>{plan.description}</Text>
-                  <Text style={styles.resultPrice}>R$ {plan.price.toFixed(2).replace('.', ',')}</Text>
-                  <TouchableOpacity 
-                    style={styles.addButton}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      handleNavigation('/plan-details', { planId: plan.planId });
-                    }}
-                  >
-                    <MaterialIcons name="shopping-cart" size={18} color="#FFFFFF" />
-                    <Text style={styles.addButtonText}>Adicionar</Text>
-                  </TouchableOpacity>
-                </View>
-                <MaterialIcons name="keyboard-arrow-right" size={24} color="#7A4F3B" style={styles.arrowIcon} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        ) : searchQuery.trim() && filteredResults.length === 0 ? (
-          <View style={styles.noResultsContainer}>
-            <Text style={styles.noResultsText}>Nenhum resultado encontrado</Text>
-          </View>
+        {/* Resultados da Busca ou Grid de Produtos */}
+        {searchQuery.trim() ? (
+          // Se há busca ativa, mostrar resultados filtrados
+          filteredResults.length > 0 ? (
+            <View style={styles.resultsContainer}>
+              {filteredResults.map((product) => (
+                <TouchableOpacity 
+                  key={product.id} 
+                  style={styles.resultCard}
+                  onPress={() => handleNavigation('/plan-details', { planId: product.id })}
+                >
+                  <View style={styles.resultImageContainer}>
+                    {product.imageUrl ? (
+                      <Image 
+                        source={{ uri: product.imageUrl }}
+                        style={styles.resultImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.resultImagePlaceholder}>
+                        <Text style={styles.resultImagePlaceholderText}>📦</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.resultInfo}>
+                    <Text style={styles.resultName}>{product.name}</Text>
+                    <Text style={styles.resultDescription} numberOfLines={2}>
+                      {product.description}
+                    </Text>
+                    <Text style={styles.resultPrice}>
+                      {preferredCurrency === 'BRL' ? 'R$' : preferredCurrency === 'USD' ? '$' : '€'} {(product.convertedPrice || product.price || 0).toFixed(2).replace('.', ',')}
+                    </Text>
+                    <TouchableOpacity 
+                      style={styles.addButton}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleNavigation('/plan-details', { planId: product.id });
+                      }}
+                    >
+                      <MaterialIcons name="shopping-cart" size={18} color="#FFFFFF" />
+                      <Text style={styles.addButtonText}>Adicionar</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <MaterialIcons name="keyboard-arrow-right" size={24} color="#7A4F3B" style={styles.arrowIcon} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.noResultsContainer}>
+              <Text style={styles.noResultsText}>Nenhum resultado encontrado</Text>
+            </View>
+          )
         ) : (
-          <View style={styles.categoriesGrid}>
-            {categories.map((category) => (
-              <TouchableOpacity 
-                key={category.id} 
-                style={styles.categoryCard}
-                onPress={() => handleNavigation('/plan-details', { planId: category.planId })}
-              >
-                <View style={styles.categoryImageContainer}>
-                  <Image 
-                    source={category.image}
-                    style={styles.categoryImage}
-                    resizeMode="contain"
-                  />
-                </View>
-                <View style={styles.categoryNameContainer}>
-                  <Text style={styles.categoryName}>{category.name}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+          // Se não há busca, mostrar todos os produtos em grid
+          products.length > 0 ? (
+            <View style={styles.productsGrid}>
+              {products.map((product) => (
+                <TouchableOpacity 
+                  key={product.id} 
+                  style={styles.productCard}
+                  onPress={() => handleNavigation('/plan-details', { planId: product.id })}
+                >
+                  <View style={styles.productImageContainer}>
+                    {product.imageUrl ? (
+                      <Image 
+                        source={{ uri: product.imageUrl }}
+                        style={styles.productImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.productImagePlaceholder}>
+                        <Text style={styles.productImagePlaceholderText}>📦</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.productInfo}>
+                    <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
+                    <Text style={styles.productPrice}>
+                      {preferredCurrency === 'BRL' ? 'R$' : preferredCurrency === 'USD' ? '$' : '€'} {(product.convertedPrice || product.price || 0).toFixed(2).replace('.', ',')}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyStateContainer}>
+              <Text style={styles.emptyStateText}>Nenhum plano disponível no momento.</Text>
+            </View>
+          )
         )}
 
         {/* Espaço para a barra de navegação */}
@@ -241,7 +251,7 @@ export default function SearchScreen() {
       <BottomNavBar activeRoute="search" />
 
       {/* Loading Overlay */}
-      <LoadingOverlay visible={loading} />
+      <LoadingOverlay visible={loading || loadingData} />
     </View>
   );
 }
@@ -310,20 +320,17 @@ const styles = StyleSheet.create({
   searchIcon: {
     marginLeft: 8,
   },
-  categoriesGrid: {
+  productsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
-  categoryCard: {
+  productCard: {
     width: '47%',
     backgroundColor: '#FFF7DD',
     borderRadius: 16,
-    alignItems: 'center',
     marginBottom: 15,
-    minHeight: 110,
-    justifyContent: 'center',
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
@@ -334,30 +341,50 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  categoryImageContainer: {
-    flex: 1,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    minHeight: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoryImage: {
-    width: 70,
-    height: 70,
-  },
-  categoryNameContainer: {
+  productImageContainer: {
     width: '100%',
+    height: 140,
     backgroundColor: '#FAEDC3',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F0E0C0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  categoryName: {
+  productImage: {
+    width: '100%',
+    height: '100%',
+  },
+  productImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#FAEDC3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  productImagePlaceholderText: {
+    fontSize: 40,
+  },
+  productInfo: {
+    padding: 12,
+  },
+  productName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#792F14',
+    marginBottom: 8,
+    minHeight: 40,
+  },
+  productPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#792F14',
+  },
+  emptyStateContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 60,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#8B6F47',
     textAlign: 'center',
   },
   bottomSpacer: {
@@ -443,6 +470,16 @@ const styles = StyleSheet.create({
   noResultsText: {
     fontSize: 16,
     color: '#8B6F47',
+  },
+  resultImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#FAEDC3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resultImagePlaceholderText: {
+    fontSize: 40,
   },
 });
 

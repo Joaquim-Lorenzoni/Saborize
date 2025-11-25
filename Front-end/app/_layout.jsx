@@ -2,13 +2,15 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { AuthProvider } from '../contexts/AuthContext';
+import { CurrencyProvider } from '../contexts/CurrencyContext';
 
-// Manter a splash screen visível enquanto o app carrega
+// mantem a splash scren ate tudo carregar
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useEffect(() => {
-    // Ocultar a splash screen quando o app estiver pronto
+    // retira slpash screen quando tudo carregar
     const hideSplashScreen = async () => {
       try {
         await SplashScreen.hideAsync();
@@ -17,17 +19,18 @@ export default function RootLayout() {
       }
     };
 
-    // Pequeno delay para garantir que tudo carregou
+    // delay p tudo carregar (aumentado para garantir que a splash apareça)
     const timer = setTimeout(() => {
       hideSplashScreen();
-    }, 100);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <>
-      <Stack
+    <AuthProvider>
+      <CurrencyProvider>
+        <Stack
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: '#FAEDC3' },
@@ -45,9 +48,10 @@ export default function RootLayout() {
         <Stack.Screen name="plan-details" />
         <Stack.Screen name="admin" />
         <Stack.Screen name="add-plan" />
-      </Stack>
-      <StatusBar style="dark" backgroundColor="#FAEDC3" />
-    </>
+        </Stack>
+        <StatusBar style="dark" backgroundColor="#FAEDC3" />
+      </CurrencyProvider>
+    </AuthProvider>
   );
 }
 

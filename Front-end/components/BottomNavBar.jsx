@@ -1,8 +1,46 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import cartService from '../services/cart.service';
 
 export default function BottomNavBar({ activeRoute = 'home' }) {
+  const [cartCount, setCartCount] = useState(0);
+
+  /**
+   * Carregar quantidade de itens no carrinho
+   */
+  const loadCartCount = useCallback(async () => {
+    try {
+      const cart = await cartService.getCart();
+      const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      setCartCount(totalItems);
+    } catch (error) {
+      console.error('Erro ao carregar quantidade do carrinho:', error);
+      setCartCount(0);
+    }
+  }, []);
+
+  /**
+   * Recarregar quando a tela receber foco
+   */
+  useFocusEffect(
+    useCallback(() => {
+      loadCartCount();
+    }, [loadCartCount])
+  );
+
+  /**
+   * Recarregar periodicamente (a cada 1 segundo) para atualizar badge
+   */
+  useEffect(() => {
+    loadCartCount(); // Carregar imediatamente
+    const interval = setInterval(() => {
+      loadCartCount();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [loadCartCount]);
+
   return (
     <View style={styles.bottomNav}>
       <TouchableOpacity 
@@ -40,7 +78,10 @@ export default function BottomNavBar({ activeRoute = 'home' }) {
       
       <TouchableOpacity 
         style={styles.navItem}
-        onPress={() => router.push('/cart')}
+        onPress={() => {
+          loadCartCount(); // Atualizar antes de navegar
+          router.push('/cart');
+        }}
       >
         <View style={styles.cartContainer}>
           <MaterialIcons 
@@ -48,9 +89,13 @@ export default function BottomNavBar({ activeRoute = 'home' }) {
             size={30} 
             color={activeRoute === 'cart' ? '#E8B896' : '#C9A882'} 
           />
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>1</Text>
-          </View>
+          {cartCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {cartCount > 99 ? '99+' : cartCount}
+              </Text>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     </View>

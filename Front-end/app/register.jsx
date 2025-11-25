@@ -1,11 +1,19 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  
+  const { register } = useAuth();
 
   const handleNavigation = (path) => {
     setLoading(true);
@@ -17,6 +25,86 @@ export default function RegisterScreen() {
       }
       setLoading(false);
     }, 200);
+  };
+
+  /**
+   * Função de registro com API
+   */
+  const handleRegister = async () => {
+    // Limpar erro anterior
+    setError('');
+    
+    // Validações básicas
+    if (!name.trim()) {
+      setError('Por favor, digite seu nome completo');
+      return;
+    }
+    
+    if (!email.trim()) {
+      setError('Por favor, digite seu email');
+      return;
+    }
+    
+    // Validação simples de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Por favor, digite um email válido');
+      return;
+    }
+    
+    if (!password.trim()) {
+      setError('Por favor, digite sua senha');
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError('A senha deve ter no mínimo 6 caracteres');
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Chamar API de registro
+      await register({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password: password,
+      });
+      
+      // Sucesso - navegar para home
+      Alert.alert(
+        'Sucesso!',
+        'Conta criada com sucesso!',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/home'),
+          },
+        ]
+      );
+      
+    } catch (err) {
+      console.error('Erro no registro:', err);
+      
+      // Exibir mensagem de erro
+      const errorMessage = err.message || 'Erro ao criar conta. Tente novamente.';
+      setError(errorMessage);
+      
+      Alert.alert(
+        'Erro no Cadastro',
+        errorMessage,
+        [{ text: 'OK' }]
+      );
+      
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,6 +139,13 @@ export default function RegisterScreen() {
 
         {/* Campos de Entrada */}
         <View style={styles.formContainer}>
+          {/* Mensagem de erro */}
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
+
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Nome Completo</Text>
             <TextInput
@@ -58,6 +153,8 @@ export default function RegisterScreen() {
               placeholder="Digite aqui o seu nome completo"
               placeholderTextColor="#792F14"
               autoCapitalize="words"
+              value={name}
+              onChangeText={setName}
             />
           </View>
 
@@ -69,16 +166,8 @@ export default function RegisterScreen() {
               placeholderTextColor="#792F14"
               keyboardType="email-address"
               autoCapitalize="none"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Usuário</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Digite aqui o seu usuário"
-              placeholderTextColor="#792F14"
-              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
             />
           </View>
 
@@ -86,10 +175,12 @@ export default function RegisterScreen() {
             <Text style={styles.label}>Senha</Text>
             <TextInput
               style={styles.input}
-              placeholder="Digite aqui a sua senha"
+              placeholder="Digite aqui a sua senha (mín. 6 caracteres)"
               placeholderTextColor="#792F14"
               secureTextEntry
               autoCapitalize="none"
+              value={password}
+              onChangeText={setPassword}
             />
           </View>
 
@@ -101,15 +192,20 @@ export default function RegisterScreen() {
               placeholderTextColor="#792F14"
               secureTextEntry
               autoCapitalize="none"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
             />
           </View>
 
           {/* Botão Cadastrar */}
           <TouchableOpacity 
-            style={styles.registerButton}
-            onPress={() => handleNavigation('/home')}
+            style={[styles.registerButton, loading && styles.registerButtonDisabled]}
+            onPress={handleRegister}
+            disabled={loading}
           >
-            <Text style={styles.registerButtonText}>Cadastrar</Text>
+            <Text style={styles.registerButtonText}>
+              {loading ? 'Cadastrando...' : 'Cadastrar'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -237,6 +333,23 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    borderLeftWidth: 4,
+    borderLeftColor: '#c62828',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#c62828',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  registerButtonDisabled: {
+    opacity: 0.6,
   },
 });
 
