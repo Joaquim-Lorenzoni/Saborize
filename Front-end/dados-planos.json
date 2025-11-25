@@ -1,0 +1,144 @@
+[
+  {
+    "name": "Plano Fast Food Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em fast food.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "McDonald's",
+      "Burger King",
+      "Subway",
+      "KFC",
+      "Giraffas",
+      "Bob's"
+    ]
+  },
+  {
+    "name": "Plano Saudável Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em restaurantes saudáveis.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "Green Kitchen",
+      "Salad Bowl",
+      "Vida Saudável",
+      "Natureza",
+      "Verde Vida"
+    ]
+  },
+  {
+    "name": "Plano Tortaria Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em tortarias e confeitarias.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "Torta Doce",
+      "Confeitaria Central",
+      "Doces & Sabores",
+      "Tortaria Artesanal",
+      "Doce Vida"
+    ]
+  },
+  {
+    "name": "Plano Italiana Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em restaurantes italianos.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "Nonna Pasta",
+      "La Trattoria",
+      "Bella Italia",
+      "Pizza & Pasta",
+      "Ristorante Romano"
+    ]
+  },
+  {
+    "name": "Plano Comida Asiática Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em restaurantes asiáticos.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "Sushi Bar",
+      "Tokyo Taste",
+      "China in Box",
+      "Thai Express",
+      "Asia Food"
+    ]
+  },
+  {
+    "name": "Plano Drinkeria Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em drinkerias e bares.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "Bar do João",
+      "Drinks & Co",
+      "Tropical Bar",
+      "Lounge 21",
+      "Happy Hour"
+    ]
+  },
+  {
+    "name": "Plano Vegetariano Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em restaurantes vegetarianos.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "Veggie Life",
+      "Green Garden",
+      "Plant Power",
+      "Vegano & Cia",
+      "Natural Food"
+    ]
+  },
+  {
+    "name": "Plano Mexicana Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em restaurantes mexicanos.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "Taco Bell",
+      "El Mariachi",
+      "Cantina Mexicana",
+      "Burrito Express",
+      "Sabor Mexicano"
+    ]
+  },
+  {
+    "name": "Plano Churrascaria Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em churrascarias.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "Grill Master",
+      "Churrasco Premium",
+      "Espeto de Ouro",
+      "Pampa Grill",
+      "Carne & Brasa"
+    ]
+  },
+  {
+    "name": "Plano Cafeteria Saborize",
+    "description": "Por apenas R$ 10/mês receba cupons com descontos exclusivos em cafeterias.",
+    "price": 10.00,
+    "currency": "BRL",
+    "imageUrl": "",
+    "restaurants": [
+      "Pão Quente",
+      "Cafeteria Central",
+      "Arte do Pão",
+      "Delícias da Manhã",
+      "Cafeteria Moderna"
+    ]
+  }
+]
+

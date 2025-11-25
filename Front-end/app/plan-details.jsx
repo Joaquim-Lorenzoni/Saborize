@@ -1,9 +1,13 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { useAuth } from '../contexts/AuthContext';
+import { useCurrency } from '../contexts/CurrencyContext';
+import cartService from '../services/cart.service';
+import planService from '../services/plan.service';
 
 // Dados dos planos disponíveis
 const plansData = {
@@ -194,6 +198,9 @@ export default function PlanDetailsScreen() {
   const params = useLocalSearchParams();
   const [showRestaurants, setShowRestaurants] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+  const [product, setProduct] = useState(null);
+  const { preferredCurrency } = useCurrency();
 
   const handleNavigation = (path, params = {}) => {
     setLoading(true);
@@ -210,35 +217,181 @@ export default function PlanDetailsScreen() {
   // Tratar parâmetros que podem vir como array ou string
   const planId = Array.isArray(params.planId) ? params.planId[0] : params.planId;
   const isAdminParam = Array.isArray(params.isAdmin) ? params.isAdmin[0] : params.isAdmin;
-
-  // Buscar dados do plano ou usar padrão
-  const plan = plansData[planId] || plansData['fast-food'];
   
-  // Verificar se é admin e se o plano pode ser editado
-  const isAdminView = isAdminParam === 'true' || isAdminParam === true;
-  const editablePlans = ['fast-food', 'saudavel', 'tortaria', 'italiana', 'asiatica', 'drinkeries', 'vegetariano', 'mexicana', 'churrascaria', 'padaria'];
-  const canEdit = isAdminView && planId && editablePlans.includes(String(planId));
+  const { isAdmin: userIsAdmin } = useAuth();
   
-  // Debug - remover depois
-  if (isAdminView) {
-    console.log('Admin view detected:', { planId, isAdminParam, canEdit, editablePlans });
-  }
+  // Verificar se pode editar (apenas admin e se veio da tela admin)
+  const canEdit = userIsAdmin && (isAdminParam === 'true' || isAdminParam === true);
+  
+  /**
+   * Carregar produto da API quando planId mudar
+   */
+  useEffect(() => {
+    if (planId) {
+      loadProduct();
+    }
+  }, [planId]);
 
-  const handleAddToCart = () => {
-    // TODO: Implementar lógica de adicionar ao carrinho
-    // Por enquanto, apenas navega para o carrinho
-    handleNavigation('/cart');
+  /**
+   * Recarregar produto quando moeda preferida mudar
+   */
+  useEffect(() => {
+    if (planId && preferredCurrency) {
+      loadProduct();
+    }
+  }, [preferredCurrency]);
+
+  /**
+   * Carregar produto
+   */
+  const loadProduct = async () => {
+    if (!planId) return;
+    
+    try {
+      setLoadingData(true);
+      
+      // Garantir que temos uma moeda válida
+      const validCurrencies = ['BRL', 'USD', 'EUR'];
+      const targetCurrency = validCurrencies.includes(preferredCurrency) ? preferredCurrency : 'BRL';
+      
+      // Se planId for numérico, buscar da API
+      const numericId = parseInt(planId);
+      if (!isNaN(numericId)) {
+        console.log(`📦 Carregando produto ${numericId} da API com moeda ${targetCurrency}...`);
+        const productData = await planService.getPlanById(numericId, targetCurrency);
+        console.log('✅ Produto carregado da API:', productData);
+        setProduct(productData);
+      } else {
+        // Fallback para dados mockados apenas se for string (compatibilidade com dados antigos)
+        console.warn(`⚠️ planId "${planId}" não é numérico, usando dados mockados`);
+        const fallbackPlan = plansData[planId] || plansData['fast-food'];
+        setProduct({
+          id: fallbackPlan.id,
+          name: fallbackPlan.name,
+          description: `Por apenas ${fallbackPlan.priceText} receba cupons com descontos exclusivos.`,
+          price: fallbackPlan.price,
+          convertedPrice: fallbackPlan.price,
+          currency: 'BRL',
+          imageUrl: null,
+          restaurants: fallbackPlan.restaurants.map(name => ({ name })),
+        });
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar produto:', error);
+      
+      // Se for admin e o produto não existir, mostrar erro específico
+      if (canEdit) {
+        Alert.alert(
+          'Erro',
+          `Não foi possível carregar o produto ID: ${planId}. Verifique se o produto existe no backend.`,
+          [
+            { text: 'OK' },
+            {
+              text: 'Voltar',
+              onPress: () => router.back(),
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Erro', 'Não foi possível carregar os detalhes do produto.');
+      }
+      
+      // Fallback para dados mockados apenas se não for admin
+      if (!canEdit) {
+        const fallbackPlan = plansData[planId] || plansData['fast-food'];
+        setProduct({
+          id: fallbackPlan.id,
+          name: fallbackPlan.name,
+          description: `Por apenas ${fallbackPlan.priceText} receba cupons com descontos exclusivos.`,
+          price: fallbackPlan.price,
+          convertedPrice: fallbackPlan.price,
+          currency: 'BRL',
+          imageUrl: null,
+          restaurants: fallbackPlan.restaurants.map(name => ({ name })),
+        });
+      }
+    } finally {
+      setLoadingData(false);
+    }
   };
 
+  /**
+   * Adicionar ao carrinho
+   */
+  const handleAddToCart = async () => {
+    if (!product) {
+      Alert.alert('Erro', 'Produto não encontrado.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Garantir que temos uma moeda válida
+      const validCurrencies = ['BRL', 'USD', 'EUR'];
+      const targetCurrency = validCurrencies.includes(preferredCurrency) ? preferredCurrency : 'BRL';
+      
+      await cartService.addItem({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price || 0, // Preço original na moeda do produto
+        convertedPrice: product.convertedPrice || product.price || 0, // Preço convertido
+        currency: targetCurrency, // Moeda usada para conversão
+        imageUrl: product.imageUrl,
+        quantity: 1,
+      });
+      
+      Alert.alert(
+        'Sucesso',
+        'Produto adicionado ao carrinho!',
+        [
+          { text: 'Continuar Comprando', style: 'cancel' },
+          {
+            text: 'Ver Carrinho',
+            onPress: () => {
+              // Forçar atualização do badge antes de navegar
+              setTimeout(() => {
+                router.push('/cart');
+              }, 100);
+            },
+          },
+        ]
+      );
+      
+    } catch (error) {
+      console.error('Erro ao adicionar ao carrinho:', error);
+      Alert.alert('Erro', 'Não foi possível adicionar o produto ao carrinho.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Editar plano (apenas admin)
+   */
   const handleEditPlan = () => {
-    // TODO: Implementar navegação para edição do plano
-    // Por enquanto, navega para a tela de adicionar plano com dados preenchidos
-    handleNavigation('/add-plan', { 
+    if (!product || !canEdit) {
+      return;
+    }
+    
+    // Navegar para tela de edição com os dados do produto
+    handleNavigation('/add-plan', {
       editMode: 'true',
-      planId: planId,
-      title: plan.name,
-      description: plan.description,
+      planId: String(product.id),
+      title: product.name,
+      description: product.description,
     });
+  };
+  
+  // Usar produto da API ou fallback
+  const displayProduct = product || {
+    name: 'Carregando...',
+    description: '',
+    price: 0,
+    convertedPrice: 0,
+    restaurants: [],
   };
 
   return (
@@ -249,7 +402,7 @@ export default function PlanDetailsScreen() {
           <MaterialIcons name="arrow-back" size={24} color="#792F14" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {plan.name}
+          {displayProduct.name}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -270,31 +423,57 @@ export default function PlanDetailsScreen() {
               <Text style={styles.editButtonText}>Editar plano</Text>
             </TouchableOpacity>
           )}
-          <Image 
-            source={plan.image}
-            style={styles.planImage}
-            resizeMode="contain"
-          />
+          {displayProduct.imageUrl ? (
+            <Image 
+              source={{ uri: displayProduct.imageUrl }}
+              style={styles.planImage}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={styles.planImagePlaceholder}>
+              <Text style={styles.planImagePlaceholderText}>📦</Text>
+            </View>
+          )}
         </View>
 
         {/* Descrição do Plano */}
         <View style={styles.descriptionContainer}>
           <Text style={styles.descriptionText}>
-            Por apenas <Text style={styles.highlightText}>{plan.priceText}</Text> receba cupons com descontos exclusivos em diversos restaurantes de fast food da cidade.
+            {displayProduct.description || 'Descrição do produto não disponível.'}
           </Text>
           
-          <Text style={styles.descriptionText}>
-            Receba <Text style={styles.highlightText}>{plan.coupons}</Text> de {plan.validity}
-          </Text>
-          
-          <Text style={styles.descriptionText}>
-            Economize <Text style={styles.highlightText}>{plan.savings}</Text> {plan.frequency}
+          <Text style={styles.priceText}>
+            {preferredCurrency === 'BRL' ? 'R$' : preferredCurrency === 'USD' ? '$' : '€'} {(displayProduct.convertedPrice || displayProduct.price || 0).toFixed(2)}
           </Text>
         </View>
 
         {/* Dropdown "Onde aceita" */}
         <View style={styles.dropdownContainer}>
-          <Text style={styles.dropdownText}>Onde aceita</Text>
+          <TouchableOpacity 
+            style={styles.dropdownHeader}
+            onPress={() => setShowRestaurants(!showRestaurants)}
+          >
+            <Text style={styles.dropdownText}>Onde aceita</Text>
+            <MaterialIcons 
+              name={showRestaurants ? "keyboard-arrow-up" : "keyboard-arrow-down"} 
+              size={24} 
+              color="#792F14" 
+            />
+          </TouchableOpacity>
+          
+          {showRestaurants && displayProduct.restaurants && displayProduct.restaurants.length > 0 && (
+            <View style={styles.restaurantsList}>
+              {displayProduct.restaurants.map((restaurant, index) => (
+                <Text key={index} style={styles.restaurantItem}>
+                  • {restaurant.name || restaurant}
+                </Text>
+              ))}
+            </View>
+          )}
+          
+          {showRestaurants && (!displayProduct.restaurants || displayProduct.restaurants.length === 0) && (
+            <Text style={styles.noRestaurantsText}>Nenhum restaurante associado</Text>
+          )}
         </View>
 
         {/* Espaço para o botão fixo */}
@@ -313,7 +492,7 @@ export default function PlanDetailsScreen() {
       </View>
 
       {/* Loading Overlay */}
-      <LoadingOverlay visible={loading} />
+      <LoadingOverlay visible={loading || loadingData} />
     </SafeAreaView>
   );
 }
@@ -414,10 +593,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+  dropdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   dropdownText: {
     fontSize: 14,
     color: '#792F14',
     fontWeight: '500',
+  },
+  restaurantsList: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+  },
+  restaurantItem: {
+    fontSize: 14,
+    color: '#333333',
+    marginBottom: 8,
+    paddingLeft: 8,
+  },
+  noRestaurantsText: {
+    fontSize: 14,
+    color: '#8B6F47',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+    fontStyle: 'italic',
+  },
+  priceText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#792F14',
+    marginTop: 12,
+  },
+  planImagePlaceholder: {
+    width: 120,
+    height: 120,
+    backgroundColor: '#FAEDC3',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  planImagePlaceholderText: {
+    fontSize: 60,
   },
   bottomSpacer: {
     height: 100,

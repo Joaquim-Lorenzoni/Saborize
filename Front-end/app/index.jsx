@@ -1,10 +1,16 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  
+  const { login } = useAuth();
 
   const handleNavigation = (path) => {
     setLoading(true);
@@ -12,6 +18,69 @@ export default function LoginScreen() {
       router.push(path);
       setLoading(false);
     }, 200);
+  };
+
+  /**
+   * Função de login com API
+   */
+  const handleLogin = async () => {
+    // Limpar erro anterior
+    setError('');
+    
+    // Validações básicas
+    if (!email.trim()) {
+      setError('Por favor, digite seu email');
+      return;
+    }
+    
+    if (!password.trim()) {
+      setError('Por favor, digite sua senha');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Chamar API de login
+      const response = await login(email, password);
+      
+      // Verificar se é admin e redirecionar adequadamente
+      const userType = response?.user?.type;
+      const isAdminUser = userType === 'Admin' || userType === 'ADMIN' || userType === 0;
+      
+      if (isAdminUser) {
+        // Admin vai direto para tela admin
+        router.replace('/admin');
+      } else {
+        // Usuário comum vai para home
+        router.replace('/home');
+      }
+      
+    } catch (err) {
+      console.error('Erro no login:', err);
+      
+      // Exibir mensagem de erro mais detalhada
+      let errorMessage = err.message || 'Erro ao fazer login. Verifique suas credenciais.';
+      
+      // Se for erro de conexão, adicionar dicas
+      if (errorMessage.includes('Sem resposta do servidor') || errorMessage.includes('Network')) {
+        errorMessage += '\n\n💡 Dicas:\n';
+        errorMessage += '• Verifique se o backend está rodando\n';
+        errorMessage += '• Confira a URL no console do app\n';
+        errorMessage += '• Se usar device físico, configure o IP em config/api.js';
+      }
+      
+      setError(errorMessage);
+      
+      Alert.alert(
+        'Erro no Login',
+        errorMessage,
+        [{ text: 'OK' }]
+      );
+      
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,13 +103,23 @@ export default function LoginScreen() {
 
       {/* Campos de Entrada */}
       <View style={styles.formContainer}>
+        {/* Mensagem de erro */}
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Usuário</Text>
+          <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="Digite aqui o seu usuário"
+            placeholder="Digite seu email"
             placeholderTextColor="#792F14"
             autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
           />
         </View>
 
@@ -48,19 +127,24 @@ export default function LoginScreen() {
           <Text style={styles.label}>Senha</Text>
           <TextInput
             style={styles.input}
-            placeholder="Digite aqui a sua senha"
+            placeholder="Digite sua senha"
             placeholderTextColor="#792F14"
             secureTextEntry
             autoCapitalize="none"
+            value={password}
+            onChangeText={setPassword}
           />
         </View>
 
         {/* Botão Entrar */}
         <TouchableOpacity 
-          style={styles.loginButton}
-          onPress={() => handleNavigation('/home')}
+          style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+          onPress={handleLogin}
+          disabled={loading}
         >
-          <Text style={styles.loginButtonText}>Entrar</Text>
+          <Text style={styles.loginButtonText}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -179,5 +263,22 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    borderLeftWidth: 4,
+    borderLeftColor: '#c62828',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#c62828',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
   },
 });
